@@ -1,6 +1,7 @@
 require('dotenv/config');
 const { Client, IntentsBitField } = require('discord.js');
 const { Configuration, OpenAIApi } = require('openai');
+const fs = require('fs');
 
 const client = new Client({
     intents: [
@@ -48,13 +49,23 @@ client.on('messageCreate', async (message) => {
     });
 
     let finalText = result.data.choices[0].message.content;
-
     let len = finalText.length;
-    let j = 1;
 
-    for(i=0; i < len; i=i+2000){
-        message.reply(finalText.slice(i, j*2000));
-        j++;
+    if (len > 2000) {
+        fs.writeFile('message.txt', finalText, function (err) {
+          if (err) throw err;
+          console.log('Sua mensagem foi salva em um arquivo de texto.');
+        });
+
+        message.reply({
+            files: [{
+                attachment: 'message.txt',
+                name: 'message.txt'
+            }],
+            content: 'Resposta enviada no arquivo.'
+        });
+    } else {
+        message.reply(finalText);
     }
 })
 
